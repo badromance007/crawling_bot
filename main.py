@@ -1,7 +1,7 @@
 import bs4
 import pandas
 import requests
-from microchip import microchip
+from ic_memory import *
 
 def get_page_content(url):
    page = requests.get(url,headers={"Accept-Language":"en-US"})
@@ -21,7 +21,7 @@ amounts = []
 paths = []
 categories = []
 
-array_data = microchip
+array_data = list_data
 
 def collect_data(array_data):
   global names
@@ -73,7 +73,7 @@ print(f"paths length = {len(get_page_details(paths))}")
 
 
 df1 = pandas.DataFrame({'Danh mục':categories,
-                        'Mã SP':['MUDA' + str(index).zfill(6) for index, name in enumerate(names)],
+                        'Mã SP':[code + str(index).zfill(6) for index, name in enumerate(names)],
                         'Tên':names,
                         'Mô tả':desc_smalls,
                         'Giá bán':new_prices,
@@ -82,4 +82,4 @@ df1 = pandas.DataFrame({'Danh mục':categories,
 
 print(df1)
 
-df1.to_excel('Microchip.xlsx')
+df1.to_excel('ic_memory.xlsx')
