@@ -1,7 +1,7 @@
 import bs4
 import pandas
 import requests
-from ic_memory import *
+from ic_programming import *
 
 def get_page_content(url):
    page = requests.get(url,headers={"Accept-Language":"en-US"})
@@ -82,4 +82,4 @@ df1 = pandas.DataFrame({'Danh mục':categories,
 
 print(df1)
 
-df1.to_excel('ic_memory.xlsx')
+df1.to_excel(f"{filename}.xlsx")

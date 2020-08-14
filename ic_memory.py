@@ -6,3 +6,5 @@ list_data = [
 ]
 
 code = 'MUDB'
+
+filename = 'ic_memory'
