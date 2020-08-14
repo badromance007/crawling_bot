@@ -1,6 +1,7 @@
 import bs4
 import pandas
 import requests
+# from unidecode import unidecode
 from ic_programming import *
 
 def get_page_content(url):
@@ -82,4 +83,5 @@ df1 = pandas.DataFrame({'Danh mục':categories,
 
 print(df1)
 
+# df1.to_excel(f"{unidecode(filename).replace(',', '').replace(' ', '_')}.xlsx")
 df1.to_excel(f"{filename}.xlsx")
