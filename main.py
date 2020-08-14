@@ -2,7 +2,7 @@ import bs4
 import pandas
 import requests
 # from unidecode import unidecode
-from ic_programming import *
+from ic_root import *
 
 def get_page_content(url):
    page = requests.get(url,headers={"Accept-Language":"en-US"})
