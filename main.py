@@ -28,7 +28,7 @@ def get_page_html(url):
 def get_page_details(paths):
   image_urls = []
   details = []
-  for path in paths:
+  for index, path in enumerate(paths):
     url = "https://www.thegioiic.com" + path
 
     # get detail
@@ -38,8 +38,8 @@ def get_page_details(paths):
 
     detail = soup.find('div', class_='view_tab_product')
 
-    print(image_url)
-    print(detail)
+    print(f"{index}.Crawling -> {url}")
+    print(f"{index}.{image_url}")
 
     # details.append(url)
     image_urls.append(image_url)
@@ -104,19 +104,22 @@ print(f"desc_smalls length = {len(desc_smalls)}")
 print(f"new_prices length = {len(new_prices)}")
 print(f"amounts length = {len(amounts)}")
 print(f"image_urls length = {len(image_urls)}")
-print(f"paths length = {len(get_page_details(paths))}")
+print(f"paths length = {len(paths)}")
 
 
+page_detail = get_page_details(paths)
 df1 = pandas.DataFrame({'Danh mục':categories,
                         'Mã SP':[code + str(index).zfill(6) for index, name in enumerate(names)],
                         'Tên':names,
                         'Mô tả':desc_smalls,
                         'Giá bán':new_prices,
                         'Số lượng tồn':amounts,
-                        'Ảnh':get_page_details(paths)[0],
-                        'Nội dung':get_page_details(paths)[1]})
+                        'Ảnh':page_detail[0],
+                        'Nội dung':page_detail[1]})
 
 print(df1)
 
 # df1.to_excel(f"{unidecode(filename).replace(',', '').replace(' ', '_')}.xlsx")
 df1.to_excel(f"{filename}.xlsx")
+
+# first time = 13m30s
