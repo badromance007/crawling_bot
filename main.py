@@ -123,3 +123,4 @@ print(df1)
 df1.to_excel(f"{filename}.xlsx")
 
 # first time = 13m30s
+# second time = 4m (+70% speed)
