@@ -21,7 +21,7 @@ def get_page_html(url):
   driver.get(url)
   time.sleep(1)
   page = driver.page_source
-  driver.quit()
+  # driver.quit()
   
   return bs4.BeautifulSoup(page,"lxml")
 
