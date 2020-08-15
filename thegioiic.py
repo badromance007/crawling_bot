@@ -3,6 +3,8 @@ import pandas
 import requests
 from selenium import webdriver
 import time
+import os # write files
+from tqdm import tqdm # for images downloading progress bar
 # from unidecode import unidecode
 from ic_programming import *
 
@@ -25,7 +27,25 @@ def get_page_html(url):
   
   return bs4.BeautifulSoup(page,"lxml")
 
-def get_page_details(paths):
+def download(image_url, pathname, index):
+  # Downloads an image given an URL and puts it in the folder `images`
+  # if images doesn't exist, make that images dir
+  if not os.path.isdir(pathname):
+    print('Create images folder!')  
+    os.makedirs(pathname)
+  response = requests.get(image_url, stream=True) # download response body
+  file_size = int(response.headers.get("Content-Length", 0)) # get filesize
+  filename = os.path.join(pathname, f"{product_codes[index]}.{image_url.split('.')[-1]}") # # get the file name
+  # progress bar, changing the unit to bytes instead of iteration (default by tqdm)
+  progress = tqdm(response.iter_content(1024), f"Downloading {filename}", total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
+  with open(filename, "wb") as f:
+      for data in progress:
+          # write data read to the file
+          f.write(data)
+          # update the progress bar manually
+          progress.update(len(data))
+
+def get_page_details(paths, product_codes):
   image_urls = []
   details = []
   for index, path in enumerate(paths):
@@ -35,6 +55,7 @@ def get_page_details(paths):
     soup = get_page_html(url)
     
     image_url = soup.find('div', class_='small-container').find('img')['src']
+    download(image_url, 'images', index) # download images
 
     detail = soup.find('div', class_='view_tab_product')
 
@@ -106,10 +127,10 @@ print(f"amounts length = {len(amounts)}")
 print(f"image_urls length = {len(image_urls)}")
 print(f"paths length = {len(paths)}")
 
-
-page_detail = get_page_details(paths)
+product_codes = [code + str(index).zfill(6) for index, name in enumerate(names)]
+page_detail = get_page_details(paths, product_codes)
 df1 = pandas.DataFrame({'Danh mục':categories,
-                        'Mã SP':[code + str(index).zfill(6) for index, name in enumerate(names)],
+                        'Mã SP':product_codes,
                         'Tên':names,
                         'Mô tả':desc_smalls,
                         'Giá bán':new_prices,
