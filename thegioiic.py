@@ -5,8 +5,8 @@ from selenium import webdriver
 import time
 import os # write files
 from tqdm import tqdm # for images downloading progress bar
-# from unidecode import unidecode
-from ic_programming import *
+from unidecode import unidecode
+from data.data import *
 
 def get_page_content(url):
   page = requests.get(url,headers={"Accept-Language":"en-US"})
@@ -140,8 +140,8 @@ df1 = pandas.DataFrame({'Danh mục':categories,
 
 print(df1)
 
-# df1.to_excel(f"{unidecode(filename).replace(',', '').replace(' ', '_')}.xlsx")
-df1.to_excel(f"{filename}.xlsx")
+df1.to_excel(f"excels/{unidecode(filename).replace(',', '').replace(' ', '_')}.xlsx")
+# df1.to_excel(f"excels/{filename}.xlsx")
 
 # first time = 13m30s
 # second time = 4m (+70% speed)
