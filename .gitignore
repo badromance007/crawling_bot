@@ -1,3 +1,7 @@
 *.xlsx
 images/*
 !images/.gitkeep 
+data/*
+!images/.gitkeep 
+excels/*
+!images/.gitkeep 
