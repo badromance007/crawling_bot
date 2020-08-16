@@ -4,4 +4,4 @@ images/*
 data/*
 !images/.gitkeep 
 excels/*
-!images/.gitkeep 
+!excels/.gitkeep 
