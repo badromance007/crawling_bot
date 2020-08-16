@@ -2,6 +2,6 @@
 images/*
 !images/.gitkeep 
 data/*
-!images/.gitkeep 
+!data/.gitkeep 
 excels/*
 !excels/.gitkeep 
