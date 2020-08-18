@@ -42,7 +42,7 @@ def get_page_html(url):
   
   return bs4.BeautifulSoup(page,"lxml")
 
-def download(image_url, pathname, index):
+def download(image_url, pathname, name):
   # Downloads an image given an URL and puts it in the folder `images`
   # if images doesn't exist, make that images dir
   if not os.path.isdir(pathname):
@@ -50,7 +50,7 @@ def download(image_url, pathname, index):
     os.makedirs(pathname)
   response = requests.get(image_url, stream=True) # download response body
   file_size = int(response.headers.get("Content-Length", 0)) # get filesize
-  filename = os.path.join(pathname, f"{product_codes[index]}.{image_url.split('.')[-1]}") # # get the file name
+  filename = os.path.join(pathname, f"{name}.{image_url.split('.')[-1]}") # # get the file name
   # progress bar, changing the unit to bytes instead of iteration (default by tqdm)
   progress = tqdm(response.iter_content(1024), f"Downloading {filename}", total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
   with open(filename, "wb") as f:
@@ -71,7 +71,11 @@ def get_page_details(paths, product_codes):
     
     image_tags = soup.find('div', class_='small-container').findAll('img')
     image_urls = [image_tag['src'] for image_tag in image_tags]
-    download(image_urls[0], 'images', index) # download images
+    for i, image_url in enumerate(image_urls):
+      if i == 0:
+        download(image_url, 'images', product_codes[index]) # download first images
+      else:
+        download(image_url, 'images', f"{product_codes[index]}_{i}") # download remaining images
 
     detail = soup.find('div', class_='view_tab_product')
 
