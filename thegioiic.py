@@ -154,7 +154,7 @@ df1 = pandas.DataFrame({'Danh mục cấp 1':['' for category in categories],
                         'Mô tả':desc_smalls,
                         'Giá bán':new_prices,
                         'Số lượng tồn':amounts,
-                        'Ảnh':page_detail[0],
+                        'Số lượng ảnh':page_detail[0],
                         'Nội dung':page_detail[1]})
 
 print(df1)
