@@ -46,7 +46,7 @@ def download(image_url, pathname, index):
           progress.update(len(data))
 
 def get_page_details(paths, product_codes):
-  image_urls = []
+  image_amounts = []
   details = []
   for index, path in enumerate(paths):
     url = "https://www.thegioiic.com" + path
@@ -54,18 +54,20 @@ def get_page_details(paths, product_codes):
     # get detail
     soup = get_page_html(url)
     
-    image_url = soup.find('div', class_='small-container').find('img')['src']
-    download(image_url, 'images', index) # download images
+    image_tags = soup.find('div', class_='small-container').findAll('img')
+    image_urls = [image_tag['src'] for image_tag in image_tags]
+    download(image_urls[0], 'images', index) # download images
 
     detail = soup.find('div', class_='view_tab_product')
 
     print(f"{index}.Crawling -> {url}")
-    print(f"{index}.{image_url}")
+    for image_url in image_urls:
+      print(f"{index}.{image_url}")
 
     # details.append(url)
-    image_urls.append(image_url)
+    image_amounts.append(len(image_urls))
     details.append(detail)
-  return [image_urls, details]
+  return [image_amounts, details]
 
 names = []
 desc_smalls = []
@@ -129,7 +131,9 @@ print(f"paths length = {len(paths)}")
 
 product_codes = [code + str(index).zfill(6) for index, name in enumerate(names)]
 page_detail = get_page_details(paths, product_codes)
-df1 = pandas.DataFrame({'Danh mục':categories,
+df1 = pandas.DataFrame({'Danh mục cấp 1':['' for category in categories],
+                        'Danh mục cấp 2':['' for category in categories],
+                        'Danh mục cấp 3':categories,
                         'Mã SP':product_codes,
                         'Tên':names,
                         'Mô tả':desc_smalls,
