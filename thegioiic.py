@@ -2,7 +2,11 @@ import bs4
 import pandas
 import requests
 from selenium import webdriver
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+# import time
 import os # write files
 from tqdm import tqdm # for images downloading progress bar
 from unidecode import unidecode
@@ -21,7 +25,18 @@ def get_page_html(url):
   driver = webdriver.Chrome("chromedriver.exe", options=options)
   
   driver.get(url)
-  time.sleep(1)
+  # time.sleep(1)
+  delay = 30 # seconds
+  try:
+    # WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.show-small-img')))
+    small_images = driver.find_elements_by_css_selector(".show-small-img")
+    for image in small_images:
+      print(f"Before Waiting /images/loader.gif => {image.get_attribute('src')}")
+      WebDriverWait(driver, delay).until(lambda x: '/images/loader.gif' not in image.get_attribute('src'))
+      print(f"After Waiting /images/loader.gif => {image.get_attribute('src')}")
+    print("Page is ready!")
+  except TimeoutException:
+    print("Loading took too much time!")
   page = driver.page_source
   # driver.quit()
   
