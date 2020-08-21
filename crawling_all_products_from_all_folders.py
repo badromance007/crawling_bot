@@ -126,7 +126,12 @@ def get_page_details(paths, product_codes, logs_foder):
     download_status = True
     for i, image_url in enumerate(image_urls):
       if i == 0:
-        download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", product_codes[index + crawled_index_at]) # download first images
+        download_status = download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", product_codes[index + crawled_index_at]) # download first images
+        if download_status == False:
+          print(" ")
+          print("Cannot Download First Image.... Stop program!!!!") # for examination!!!!
+          print(" ")
+          exit()
       else:
         if download_fail_count == 0:
           download_status = download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", f"{product_codes[index + crawled_index_at]}_{i}") # download remaining images
