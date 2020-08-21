@@ -4,6 +4,7 @@ from glob import glob
 
 import bs4
 import pandas
+from pandas import *
 import requests
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -57,25 +58,63 @@ def get_page_html(url):
 def download(image_url, pathname, name):
   # Downloads an image given an URL and puts it in the folder `images`
   # if images doesn't exist, make that images dir
-  if not os.path.isdir(pathname):
-    print('Create images folder!')  
-    os.makedirs(pathname)
-  response = requests.get(image_url, stream=True) # download response body
-  file_size = int(response.headers.get("Content-Length", 0)) # get filesize
-  filename = os.path.join(pathname, f"{name}.{image_url.split('.')[-1]}") # # get the file name
-  # progress bar, changing the unit to bytes instead of iteration (default by tqdm)
-  progress = tqdm(response.iter_content(1024), f"Downloading {filename}", total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
-  with open(filename, "wb") as f:
-      for data in progress:
-          # write data read to the file
-          f.write(data)
-          # update the progress bar manually
-          progress.update(len(data))
+  if image_url != '/images/loader.gif':
+    if not os.path.isdir(pathname):
+      print('Create images folder!')  
+      os.makedirs(pathname)
+    response = requests.get(image_url, stream=True) # download response body
+    file_size = int(response.headers.get("Content-Length", 0)) # get filesize
+    filename = os.path.join(pathname, f"{name}.{image_url.split('.')[-1]}") # # get the file name
+    # progress bar, changing the unit to bytes instead of iteration (default by tqdm)
+    progress = tqdm(response.iter_content(1024), f"Downloading {filename}", total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
+    with open(filename, "wb") as f:
+        for data in progress:
+            # write data read to the file
+            f.write(data)
+            # update the progress bar manually
+            progress.update(len(data))
+    return True
+  else:
+    return False
 
-def get_page_details(paths, product_codes):
+
+def get_page_details(paths, product_codes, logs_foder):
   image_amounts = []
   details = []
+  crawled_urls = []
+  crawled_index_at = 0
+
+  # check if logs.xlsx file exists and determine crawling
+  if os.path.exists(f"{logs_foder}/logs.xlsx"):
+    print(f"BACKUP FILE EXISTS- {logs_foder}/logs.xlsx is being read")
+    wb = xlrd.open_workbook(f"{logs_foder}/logs.xlsx")
+    sheet = wb.sheet_by_index(0) 
+    sheet.cell_value(0, 1)
+    d_log = {
+      'crawled_urls': [],
+      'downloaded_image_amounts': [],
+      'downloaded_details': []
+    }
+    for i in range(sheet.nrows):
+      if i >= 1:
+        d_log['crawled_urls'].append(sheet.cell_value(i, 1))
+        d_log['downloaded_image_amounts'].append(sheet.cell_value(i, 2))
+        d_log['downloaded_details'].append(sheet.cell_value(i, 3))
+
+    crawled_urls = d_log['crawled_urls']
+    image_amounts = d_log['downloaded_image_amounts']
+    details = d_log['downloaded_details']
+    crawled_index_at = len(crawled_urls) # remember crawled position
+    print(f"crawled_index_at -> {crawled_index_at}")
+    print(f"paths length before remove -> {len(paths)}")
+    for crawled_url in crawled_urls:
+      paths.remove(crawled_url) # remove crawled paths
+    print(f"paths length after remove -> {len(paths)}")
+  else:
+    print(f"BACKUP FILE DOES NOT EXISTS!!!")
+
   for index, path in enumerate(paths):
+    print(f"paths length looping -> {len(paths)}")
     url = "https://www.thegioiic.com" + path
 
     # get detail
@@ -83,21 +122,47 @@ def get_page_details(paths, product_codes):
     
     image_tags = soup.find('div', class_='small-container').findAll('img')
     image_urls = [image_tag['src'] for image_tag in image_tags]
+    download_fail_count = 0
+    download_status = True
     for i, image_url in enumerate(image_urls):
       if i == 0:
-        download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", product_codes[index]) # download first images
+        download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", product_codes[index + crawled_index_at]) # download first images
       else:
-        download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", f"{product_codes[index]}_{i}") # download remaining images
+        if download_fail_count == 0:
+          download_status = download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", f"{product_codes[index + crawled_index_at]}_{i}") # download remaining images
+          if download_status == False:
+            download_fail_count += 1
+        else:
+          download_status = download(image_url, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/images", f"{product_codes[index + crawled_index_at]}_{i - download_fail_count}") # download remaining images
+          if download_status == False:
+            download_fail_count += 1
+
 
     detail = soup.find('div', class_='view_tab_product')
 
-    print(f"{index}.Crawling -> {url}")
+    print(f"{index + crawled_index_at}.Crawling -> {url}")
     for image_url in image_urls:
-      print(f"{index}.{image_url}")
+      print(f"{index + crawled_index_at}.{image_url}")
 
     # details.append(url)
-    image_amounts.append(len(image_urls))
+    image_amounts.append(len(image_urls) - download_fail_count)
     details.append(detail)
+    crawled_urls.append(path)
+    
+    # create logs for backup
+    if not os.path.isdir(logs_foder):
+      print('Create logs folder!')  
+      os.makedirs(logs_foder)
+    logs_backup = {
+      'crawled_urls': crawled_urls,
+      'downloaded_image_amounts': image_amounts,
+      'downloaded_details': details
+    }
+    # update logs.xlsx backup file
+    df_backup = pandas.DataFrame(logs_backup)
+    df_backup.to_excel(f"{logs_foder}/logs.xlsx")
+    print(f"BACKUP FILE - {logs_foder}/logs.xlsx is updated")
+
   return [image_amounts, details]
 
 
@@ -220,7 +285,7 @@ for list_item in list_data:
         product_codes = [array_data[0]['codeprefix'] + str(index).zfill(3) for index, name in enumerate(names)]
         print(names)
         print(paths)
-        page_detail = get_page_details(paths, product_codes)
+        page_detail = get_page_details(paths, product_codes, f"{list_item['number']}_{list_item['foldername']}/{child_list_item['number']}_{child_list_item['foldername']}/logs")
         df1 = pandas.DataFrame({'Danh mục cấp 1':['' for category in categories],
                                 'Danh mục cấp 2':['' for category in categories],
                                 'Danh mục cấp 3':categories,
