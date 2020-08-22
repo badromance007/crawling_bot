@@ -186,6 +186,10 @@ def collect_data(array_data):
       soup = get_page_content(url)
 
       container = soup.find('div', {"id": "order_product"})
+      if container is None: # Case: Page does not exist!!!
+        print(f"Container is None ====> Page {url} - DOES NOT EXIST!!!")
+        continue # skip the page
+      
       products = container.findAll('p', class_='name-a')
       descriptions = container.findAll('div', class_='desc_small')
       price_tags = container.findAll('p', class_='price')
